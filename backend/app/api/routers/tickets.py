@@ -4,6 +4,7 @@ from typing import List, Optional
 from app.schemas.ticket import TicketCreate, TicketCreateResponse, TicketListResponse, TicketDetailResponse, TicketUpdate, TicketUpdateResponse
 from app.services import ticket_service
 from app.database.session import get_db
+from app.utils.auth import get_current_user
 
 router = APIRouter(
     prefix="/api/tickets",
@@ -13,7 +14,8 @@ router = APIRouter(
 @router.post("", response_model=TicketCreateResponse, status_code=status.HTTP_201_CREATED)
 def create_ticket(
     ticket_in: TicketCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
 ):
     """
     Create a new support ticket.
@@ -24,7 +26,8 @@ def create_ticket(
 def get_tickets(
     status: Optional[str] = Query(None, description="Filter by status"),
     search: Optional[str] = Query(None, description="Search by customer name or subject"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
 ):
     """
     Retrieve all tickets with optional filtering.
@@ -34,7 +37,8 @@ def get_tickets(
 @router.get("/{ticket_id}", response_model=TicketDetailResponse)
 def get_ticket(
     ticket_id: str,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
 ):
     """
     Retrieve details for a specific ticket by its ID.
@@ -48,7 +52,8 @@ def get_ticket(
 def update_ticket(
     ticket_id: str,
     ticket_in: TicketUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
 ):
     """
     Update a ticket's status and optionally add a note.
@@ -60,3 +65,17 @@ def update_ticket(
         "success": True,
         "updated_at": ticket.updated_at
     }
+
+@router.delete("/{ticket_id}", status_code=status.HTTP_200_OK)
+def delete_ticket(
+    ticket_id: str,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    """
+    Delete a specific ticket by ID, cascade deleting associated notes.
+    """
+    success = ticket_service.delete_ticket(db=db, ticket_id=ticket_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    return {"success": True}

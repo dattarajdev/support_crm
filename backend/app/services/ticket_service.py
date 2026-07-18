@@ -93,3 +93,16 @@ def update_ticket(db: Session, ticket_id: str, ticket_in: TicketUpdate) -> Optio
         db.rollback()
         logger.error(f"Error updating ticket {ticket_id}: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
+
+def delete_ticket(db: Session, ticket_id: str) -> bool:
+    try:
+        ticket = db.query(Ticket).filter(Ticket.ticket_id == ticket_id).first()
+        if not ticket:
+            return False
+        db.delete(ticket)
+        db.commit()
+        return True
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error deleting ticket {ticket_id}: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")

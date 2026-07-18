@@ -5,6 +5,10 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "SupportFlow API"
     DATABASE_URL: str
     CORS_ORIGINS: List[str] = ["http://localhost:5173"]
+    
+    JWT_SECRET: str
+    JWT_ALGORITHM: str = "HS256"
+    JWT_EXPIRE_HOURS: int = 8
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
