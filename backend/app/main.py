@@ -32,6 +32,7 @@ app = FastAPI(
     description="Backend API for SupportFlow CRM"
 )
 
+print("CORS_ORIGINS =", settings.CORS_ORIGINS)
 # Set up CORS middleware
 app.add_middleware(
     CORSMiddleware,
